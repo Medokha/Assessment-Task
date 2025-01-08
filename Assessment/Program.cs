@@ -5,6 +5,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using Assessment.Services;
+using Assessment;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,15 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<EmployeeContext>(options =>
+builder.Services.AddDbContext<HosinOldTestingContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddTransient<IDepartmentsService, DepartmentService>();
-builder.Services.AddTransient<IEmployeeService, EmployeeService>();
 builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddAutoMapper(typeof(Program));
@@ -33,7 +32,7 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Assessment",
+        Title = "HUC",
     });
 });
 
