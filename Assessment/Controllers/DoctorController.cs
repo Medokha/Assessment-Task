@@ -1,4 +1,5 @@
 ﻿using Assessment.ViewModels.Edu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -11,6 +12,7 @@ namespace Assessment.Controllers
     {
         HosinOldTestingContext _context = new HosinOldTestingContext();
         [HttpGet("doctor/{id}")]
+        [Authorize(Roles = "edu")]
         public async Task<IActionResult> GetDoctorInformationAsync(int id)
         {
             try
@@ -37,6 +39,7 @@ namespace Assessment.Controllers
         }
 
         [HttpGet("material/{id}")]
+        [Authorize(Roles = "edu")]
         public async Task<IActionResult> GetMaterailAsync(int id)
         {
             try
@@ -71,6 +74,7 @@ namespace Assessment.Controllers
 
 
         [HttpGet("studentmaterial/{id}")]
+        [Authorize(Roles = "edu")]
         public async Task<IActionResult> GetStudentMaterailAsync(int id)
         {
             try

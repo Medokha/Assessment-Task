@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Assessment.Data;
 using MoreLinq;
+using Microsoft.AspNetCore.Authorization;
 namespace Assessment.Controllers
 {
     [Route("api/[controller]")]
@@ -14,6 +15,8 @@ namespace Assessment.Controllers
         HosinOldTestingContext context = new HosinOldTestingContext();
 
         [HttpGet("staticaccount")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> Getstaticaccount()
         {
              int total(int id, string year)
@@ -374,6 +377,8 @@ namespace Assessment.Controllers
         }
 
         [HttpGet("StudentPayment")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetStudentPaymentPositionData()
         {
             try
@@ -429,6 +434,8 @@ namespace Assessment.Controllers
         }
 
         [HttpGet("StudentReceipts")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetStudentReceiptsData()
         {
             try

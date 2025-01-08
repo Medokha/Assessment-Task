@@ -1,5 +1,6 @@
 ﻿using Assessment.Constants;
 using Assessment.ViewModels.Edu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ namespace Assessment.Controllers
 
 
         [HttpGet("staticbystage")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetstaticbystageAsync()
         {
              async Task<long> total(int id, int stage, string year)

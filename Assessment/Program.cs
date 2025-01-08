@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using Assessment.Services;
 using Assessment;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,14 @@ builder.Services.AddSwaggerGen(options =>
         Title = "HUC",
     });
 });
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login"; 
+        options.LogoutPath = "/Logout"; 
+    });
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -50,6 +59,7 @@ app.UseHttpsRedirection();
 app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.UseAuthorization();
+app.UseAuthentication();
 
 
 app.MapControllers();

@@ -1,4 +1,5 @@
 ﻿using Assessment.ViewModels.Edu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace Assessment.Controllers
         HosinOldTestingContext _context = new HosinOldTestingContext();
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "std")]
         public async Task<IActionResult> GetStudentInformationAsync(int id)
         {
             try
@@ -51,6 +53,7 @@ namespace Assessment.Controllers
             }
         }
         [HttpGet("material/{id}")]
+        [Authorize(Roles = "std")]
         public async Task<IActionResult> GetStudentMaterialAsync(int id)
         {
             try

@@ -1,5 +1,6 @@
 ﻿using Assessment.Constants;
 using Assessment.ViewModels.Edu;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ namespace Assessment.Controllers
         HosinOldTestingContext _context = new HosinOldTestingContext();
 
         [HttpGet]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetAllStudentInformationAsync()
         {
             try
@@ -52,6 +55,8 @@ namespace Assessment.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetStudentInformationAsync(int id)
         {
             try
@@ -94,6 +99,8 @@ namespace Assessment.Controllers
 
 
         [HttpGet("Waiting")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetAllStudentWaitingAsync()
         {
             try
@@ -137,6 +144,8 @@ namespace Assessment.Controllers
 
 
         [HttpGet("Users")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> GetAllUserInformationAsync()
         {
             try
@@ -165,6 +174,8 @@ namespace Assessment.Controllers
         }
 
         [HttpGet("Statistic")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> StatisticloginAsync()
         {
             try
@@ -332,6 +343,8 @@ namespace Assessment.Controllers
 
 
         [HttpGet("StudentStates")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> AllStudentStatesAsync()
         {
             try
