@@ -313,6 +313,8 @@ namespace Assessment.Controllers
                 var viewModel = new CountsVM
                 {
                     //basic
+                    //الاحصائيات الخاصه بموظفين التسجيل 
+                    // يعرض عدد الطلاب طبقا للحالات الاتيه
                     StudentCount = querydata./*Where(c => && c.accept == category)*/Count(s => s.IsStaff == false),
                     StudentCountOngoing = querydata.Where(c => /*c.Role == "basic"*/  c.accept == category).Count(s => s.State == "مستمر"),
                     StudentCountDeferred = querydata.Where(c => /*c .Role == "basic" &&*/ c.accept == category).Count(s => s.State == "تأجيل سنة دراسية"),
@@ -341,7 +343,9 @@ namespace Assessment.Controllers
                     StudentCountSuspendedDeath = querydata.Where(c => c.accept == category).Count(s => s.State == "نقل الى كلية حكومية"),
 
                     //mandob
-                    mStudentCountOngoing = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "mandob").CountAsync(s => s.MainStatus == "مستمر"),
+                    //الاحصائيات الخاصه بالمندوبين 
+                    // يعرض عدد الطلاب طبقا للحالات الاتيه
+                    mStudentCountOngoing = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "mandob").CountAsync(s => s.MainStatus == "مستمر"), 
                     mStudentCountDeferred = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "mandob").CountAsync(s => s.MainStatus == "تأجيل سنة دراسية"),
                     mStudentCountFailedAbsence = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "mandob").CountAsync(s => s.MainStatus == "راسب بالغياب"),
                     mStudentCountMovedPrivate = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "mandob").CountAsync(s => s.MainStatus == "نقل من كلية اهلية"),
@@ -362,6 +366,8 @@ namespace Assessment.Controllers
 
 
                     //basiccommit
+                    //الاحصائيات الخاصه بموظفين لجنه التسجيل 
+                    // يعرض عدد الطلاب طبقا للحالات الاتيه
                     bcmStudentCount = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "basiccommit").CountAsync(s => s.IsStaff == false),
                     bcmStudentCountOngoing = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "basiccommit" && c.GrdNumberDate == category).CountAsync(s => s.MainStatus == "مستمر"),
                     bcmStudentCountDeferred = await _context.UseresUsers.Include(c => c.createdby).Where(c => c.createdby.Role == "basiccommit" && c.GrdNumberDate == category).CountAsync(s => s.MainStatus == "تأجيل سنة دراسية"),
@@ -385,12 +391,13 @@ namespace Assessment.Controllers
 
 
 
-                    EmployeeCount = await _context.UseresUsers.CountAsync(s => s.IsStaff == true),
-                    stdwatingCount = await _context.UseresUsers.CountAsync(s => s.IsStaff == false),
-                    BatchCount = await _context.DepartmentsYears.CountAsync(d => d.Year != null),
-                    DeptCount = await _context.DepartmentsDepartments.CountAsync(d => d.Short != null && d.Type == "std"),
-                    stdbasicCount = stdbasicCount.Count(),
-                    stdmandoCount = stdmandoCount.Count(),
+                    EmployeeCount = await _context.UseresUsers.CountAsync(s => s.IsStaff == true),//الموظفين 
+                    stdwatingCount = await _context.UseresUsers.CountAsync(s => s.IsStaff == false),// عدد الطلاب الكلي
+                    BatchCount = await _context.DepartmentsYears.CountAsync(d => d.Year != null), // عدد الدفعات
+                    DeptCount = await _context.DepartmentsDepartments.CountAsync(d => d.Short != null && d.Type == "std"), // عدد الاقسام العلميه
+                    stdbasicCount = stdbasicCount.Count(), //(عدد طلبة (موظف التسجيل
+                    stdmandoCount = stdmandoCount.Count(), //عدد طلبة المندوبين
+                    // عدد الطلاب فى قائمه الانتظار طبقا للحلات الاتيه
                     nomoadalCount = await _context.UseresWaiting.Where(c => c.StudentStatus == "دون معدل" && c.GrdNumberDate == category).CountAsync(s => s.IsStaff == false),
                     createacountCount = await _context.UseresWaiting.Where(c => c.StudentStatus == "انشاء حساب" && c.GrdNumberDate == category).CountAsync(s => s.IsStaff == false),
                     mosadacCount = await _context.UseresWaiting.Where(c => c.StudentStatus == "حساب مصادق عليه" && c.GrdNumberDate == category).CountAsync(s => s.IsStaff == false),
@@ -402,18 +409,18 @@ namespace Assessment.Controllers
                     acceptCount = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم التسجيل" && c.GrdNumberDate == category).CountAsync(s => s.IsStaff == false),
 
                     //
-                    stdwatingCountwait = await _context.UseresWaiting.CountAsync(s => s.IsStaff == false),
-                    stdbasicCountwait = stdbasicCountwait.Count(),
-                    stdmandoCountwait = stdmandoCountwait.Count(),
-                    nomoadalCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "دون معدل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    createacountCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "انشاء حساب" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    mosadacCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "حساب مصادق عليه" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    nomosadacCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "حساب غير مصادق" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    requwstCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم التقديم" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    enterCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "ادخال فقط" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    norequestCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم الانسحاب قبل التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    norequestacceptCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم الانسحاب بعد التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
-                    acceptCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    stdwatingCountwait = await _context.UseresWaiting.CountAsync(s => s.IsStaff == false), // عدد طلاب قائمه الانتظار
+                    stdbasicCountwait = stdbasicCountwait.Count(), // عدد طلاب قائمه الانتظا التى تم ادخالهم من خلال موظف التسجيل
+                    stdmandoCountwait = stdmandoCountwait.Count(), // عدد طلاب قائمه الانتظار التى تم تسجيلهم من خلال المندوبين
+                    //nomoadalCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "دون معدل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //createacountCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "انشاء حساب" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //mosadacCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "حساب مصادق عليه" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //nomosadacCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "حساب غير مصادق" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //requwstCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم التقديم" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //enterCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "ادخال فقط" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //norequestCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم الانسحاب قبل التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //norequestacceptCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم الانسحاب بعد التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
+                    //acceptCountwait = await _context.UseresWaiting.Where(c => c.StudentStatus == "تم التسجيل" && c.GrdNumberDate == maxtear).CountAsync(s => s.IsStaff == false),
 
 
                 };

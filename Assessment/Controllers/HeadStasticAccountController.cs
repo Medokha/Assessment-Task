@@ -100,14 +100,14 @@ namespace Assessment.Controllers
                 decimal p = await totalmonypaid(dept, stage, year) ?? 0;
                 stagedeptVM depstage = new stagedeptVM()
                 {
-                    numberstu = await total(dept, stage, year),
-                    numberstupaid = await totalallcomplete(dept, stage, year),
-                    numberstupaidcomplete = await totalcomplete(dept, 100, stage, year),
-                    numberstunopaidcomplete = await totalcomplete(dept, 0, stage, year),
-                    totalmony = await totalmony(dept, stage, year) ?? 0,
-                    monyreduction = await totalmonyred(dept, stage, year) ?? 0,
-                    monypaid = await totalmonypaid(dept, stage, year) ?? 0,
-                    monynopaid = t - (d + p)
+                    numberstu = await total(dept, stage, year),// العدد الكلى
+                    numberstupaid = await totalallcomplete(dept, stage, year),// عدد الطلاب المسددين
+                    numberstupaidcomplete = await totalcomplete(dept, 100, stage, year),// عدد الطلاب المسددين كامل
+                    numberstunopaidcomplete = await totalcomplete(dept, 0, stage, year),// عدد الطلاب الغبر مسددين نهائيا
+                    totalmony = await totalmony(dept, stage, year) ?? 0,// المبلغ الكلى
+                    monyreduction = await totalmonyred(dept, stage, year) ?? 0,// مبلغ التخفيض
+                    monypaid = await totalmonypaid(dept, stage, year) ?? 0,// المبلغ المدفوع
+                    monynopaid = t - (d + p) // المبلغ الغير مدفوع - المتبقى 
                 };
                 return depstage;
             }
@@ -116,14 +116,14 @@ namespace Assessment.Controllers
             {
                 stagedeptVM x = new stagedeptVM()
                 {
-                    numberstu = one.numberstu ?? 0 + two.numberstu ?? 0 + three.numberstu ?? 0 + four.numberstu ?? 0 + five.numberstu ?? 0 + grd.numberstu ?? 0,
-                    numberstupaid = one.numberstupaid ?? 0 + two.numberstupaid ?? 0 + three.numberstupaid ?? 0 + four.numberstupaid ?? 0 + five.numberstupaid ?? 0 + grd.numberstupaid ?? 0,
-                    numberstupaidcomplete = one.numberstupaidcomplete ?? 0 + two.numberstupaidcomplete ?? 0 + three.numberstupaidcomplete ?? 0 + four.numberstupaidcomplete ?? 0 + five.numberstupaidcomplete ?? 0 + grd.numberstupaidcomplete ?? 0,
-                    numberstunopaidcomplete = one.numberstunopaidcomplete ?? 0 + two.numberstunopaidcomplete ?? 0 + three.numberstunopaidcomplete ?? 0 + four.numberstunopaidcomplete ?? 0 + five.numberstunopaidcomplete ?? 0 + grd.numberstunopaidcomplete ?? 0,
-                    totalmony = one.totalmony ?? 0 + two.totalmony ?? 0 + three.totalmony ?? 0 + four.totalmony ?? 0 + five.totalmony ?? 0 + grd.totalmony ?? 0,
-                    monyreduction = one.monyreduction ?? 0 + two.monyreduction ?? 0 + three.monyreduction ?? 0 + four.monyreduction ?? 0 + five.monyreduction + grd.monyreduction ?? 0,
-                    monypaid = one.monypaid ?? 0 + two.monypaid ?? 0 + three.monypaid ?? 0 + four.monypaid ?? 0 + five.monypaid ?? 0 + grd.monypaid ?? 0,
-                    monynopaid = one.monynopaid ?? 0 + two.monynopaid ?? 0 + three.monynopaid ?? 0 + four.monynopaid ?? 0 + five.monynopaid ?? 0 + grd.monynopaid ?? 0
+                    numberstu = one.numberstu ?? 0 + two.numberstu ?? 0 + three.numberstu ?? 0 + four.numberstu ?? 0 + five.numberstu ?? 0 + grd.numberstu ?? 0, // العدد الكلى
+                    numberstupaid = one.numberstupaid ?? 0 + two.numberstupaid ?? 0 + three.numberstupaid ?? 0 + four.numberstupaid ?? 0 + five.numberstupaid ?? 0 + grd.numberstupaid ?? 0, // عدد الطلاب المسددين
+                    numberstupaidcomplete = one.numberstupaidcomplete ?? 0 + two.numberstupaidcomplete ?? 0 + three.numberstupaidcomplete ?? 0 + four.numberstupaidcomplete ?? 0 + five.numberstupaidcomplete ?? 0 + grd.numberstupaidcomplete ?? 0, // عدد الطلاب المسددين كامل
+                    numberstunopaidcomplete = one.numberstunopaidcomplete ?? 0 + two.numberstunopaidcomplete ?? 0 + three.numberstunopaidcomplete ?? 0 + four.numberstunopaidcomplete ?? 0 + five.numberstunopaidcomplete ?? 0 + grd.numberstunopaidcomplete ?? 0, // عدد الطلاب الغبر مسددين نهائيا
+                    totalmony = one.totalmony ?? 0 + two.totalmony ?? 0 + three.totalmony ?? 0 + four.totalmony ?? 0 + five.totalmony ?? 0 + grd.totalmony ?? 0, // المبلغ الكلى
+                    monyreduction = one.monyreduction ?? 0 + two.monyreduction ?? 0 + three.monyreduction ?? 0 + four.monyreduction ?? 0 + five.monyreduction + grd.monyreduction ?? 0, // مبلغ التخفيض
+                    monypaid = one.monypaid ?? 0 + two.monypaid ?? 0 + three.monypaid ?? 0 + four.monypaid ?? 0 + five.monypaid ?? 0 + grd.monypaid ?? 0, // المبلغ المدفوع
+                    monynopaid = one.monynopaid ?? 0 + two.monynopaid ?? 0 + three.monynopaid ?? 0 + four.monynopaid ?? 0 + five.monynopaid ?? 0 + grd.monynopaid ?? 0 // المبلغ الغير مدفوع - المتبقى 
                 };
                 return x;
             }
@@ -173,8 +173,8 @@ namespace Assessment.Controllers
                         v = new statictotal()
                         {
 
-                            Name = await context.DepartmentsDepartments.Where(c => c.Type == "std" && c.Id == dept).Select(x => x.Name).FirstOrDefaultAsync(),
-                            level = await context.DepartmentsDepartments.Where(c => c.Type == "std" && c.Id == dept).Select(x => x.Level).FirstOrDefaultAsync() ?? 5,
+                            Name = await context.DepartmentsDepartments.Where(c => c.Type == "std" && c.Id == dept).Select(x => x.Name).FirstOrDefaultAsync(), // اسم القسم
+                            level = await context.DepartmentsDepartments.Where(c => c.Type == "std" && c.Id == dept).Select(x => x.Level).FirstOrDefaultAsync() ?? 5, // عدد مراحل القسم
                             x1 = await Stagedept(friststageid, dept, category),
                             x2 = await Stagedept(secondstageid, dept, category),
                             x3 = await Stagedept(thiredstageid, dept, category),
@@ -204,7 +204,6 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-
                             x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
                                await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
                                await Stagedept(fourtageid, dept, category))

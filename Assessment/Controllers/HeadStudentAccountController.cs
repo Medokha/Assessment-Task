@@ -370,7 +370,19 @@ namespace Assessment.Controllers
                 if (statisticspre1000 == null)
                     return NotFound();
 
-                return Ok(statisticspre1000);
+                //return Ok(statisticspre1000);
+                return Ok(new
+                {
+                    year = categoryyear,
+                    departmentsStatistics = statisticspre1000,
+                    totalFees = ViewBag.one,
+                    totalFeesCount = ViewBag.onenum,
+                    totalReductions = ViewBag.onere,
+                    totalReductionsCount = ViewBag.onenumre,
+                    totalPaid = ViewBag.onepaid,
+                    totalPaidCount = ViewBag.onenumpaid,
+                    overallRate = ViewBag.rate
+                });
             }
             catch (Exception ex)
             {
