@@ -88,8 +88,16 @@ namespace Assessment.Controllers
                             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
-                            return Ok(new { message = "Login successful", role = user.Role });
+                             int GetLoggedInUserId()
+                            {
+                                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+                                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                                {
+                                    return userId;
+                                }
+                                return 0;
+                            }
+                            return Ok(new { message = "Login successful", role = user.Role, id = GetLoggedInUserId ()});
                         }
                         else
                         {
@@ -140,8 +148,16 @@ namespace Assessment.Controllers
                         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
-                        return Ok(new { message = "Login successful", role = user.Role });
+                        int GetLoggedInUserId()
+                        {
+                            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+                            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                            {
+                                return userId;
+                            }
+                            return 0;
+                        }
+                        return Ok(new { message = "Login successful", role = user.Role , id = GetLoggedInUserId() });
                     }
                     else
                     {

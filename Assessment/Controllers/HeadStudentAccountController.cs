@@ -14,10 +14,12 @@ namespace Assessment.Controllers
     {
         HosinOldTestingContext context = new HosinOldTestingContext();
 
+        /// <summary>
+        ///   تستخدم هذه الداله احصائيات الماليه للاقسام
+        /// </summary>
         [HttpGet("staticaccount")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> Getstaticaccount()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> Getstaticaccount(string? year)
         {
              int total(int id, string year)
             {
@@ -152,7 +154,7 @@ namespace Assessment.Controllers
                 var deptsid = await context.DepartmentsDepartments.Where(c => c.Type == "std").Select(x => x.Id).ToListAsync();
                 ViewBag.Years = await context.DepartmentsYears.Select(x => x.Year).ToListAsync();
                 var maxYearid = await context.DepartmentsYears.MaxAsync(y => y.Id);
-                var categoryyear = await context.DepartmentsYears.Where(c => c.Id == maxYearid).Select(c => c.Year).FirstOrDefaultAsync();
+                var categoryyear = year;
                 stagedeptVM statisticspre100 = new stagedeptVM();
                 List<newstatic> statisticspre1000 = new List<newstatic>();
 
@@ -178,15 +180,15 @@ namespace Assessment.Controllers
 
                             c = new newstatic()
                             {
-                                name = d,
-                                paynumber = totalpay(deptid, categoryyear),
-                                rednumber = totalred(deptid, categoryyear),
-                                total = totalstd(deptid, categoryyear),
+                                name = d, //اسم القسم  
+                                paynumber = totalpay(deptid, categoryyear), // عدد الطلاب المسددين
+                                rednumber = totalred(deptid, categoryyear), // عدد الطلاب الحاصلين على تخفيض
+                                total = totalstd(deptid, categoryyear), // عدد الطلاب الكلى
 
-                                nopaynumber = totalnopay(deptid, categoryyear),
-                                pay = await totalmonypay(deptid, categoryyear),
-                                red = await totalmonyred(deptid, categoryyear),
-                                nopay = await totalmonypayre(deptid, categoryyear),
+                                nopaynumber = totalnopay(deptid, categoryyear), // عدد الطلاب العير مسددين
+                                pay = await totalmonypay(deptid, categoryyear), // الاموال المسدده
+                                red = await totalmonyred(deptid, categoryyear), // التفيضات
+                                nopay = await totalmonypayre(deptid, categoryyear), // الغير مدفوعه
                                 rate = 0
 
                             };
@@ -376,116 +378,192 @@ namespace Assessment.Controllers
             }
         }
 
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار الدفعات الماليه لجميع الطلاب
+        /// </summary>
         [HttpGet("StudentPayment")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> GetStudentPaymentPositionData()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetStudentPaymentPositionData(int? page, string? year, string? stage)
         {
             try
             {
-                var maxYearId = await context.DepartmentsYears.MaxAsync(y => y.Id);
-                var studentData = await context.DepartmentsStudentinfromtions
-          .Include(c => c.Stage)
-          .Include(c => c.Student)
-          .ThenInclude(c => c.Dep)
-          .ThenInclude(c => c.AccountingAnnualInstallments)
-          .Where(c=>c.YearId == maxYearId)
-          .Select(c => new PaymentAccVM
-          {
+                var pageSize = 20; // Number of items per page
 
-              id = c.Id,
-              FullName = c.Student.FullName,
-              DeptName = c.Student.Dep.Name,
-              Stage = c.Stage.Stage,
-              Edu = c.Student.Edu,
-              MainStatus = c.Student.MainStatus,
-              Fee = c.Fee,
-              Reduction = c.Reduction,
-              Paid = c.Paid,
-              State = c.State,
-              rest = (c.Fee - c.Reduction - c.Paid),
-              accept = c.Year.Year,
-              FeePrentage = c.FeePrentage,
-              //Rate = c.Rate,
-              Installment = c.Fee - c.Reduction,
-              FirstInstallment = (c.Fee - c.Reduction) == 0 ? 1 :
-              c.Paid / ((c.Fee - c.Reduction) / 5) >= 1 ? 1 : 0,
-              SecondInstallment = (c.Fee - c.Reduction) == 0 ? 1 :
-              c.Paid / ((c.Fee - c.Reduction) / 5) >= 2 ? 1 : 0,
-              ThirdInstallment = (c.Fee - c.Reduction) == 0 ? 1 :
-              c.Paid / ((c.Fee - c.Reduction) / 5) >= 3 ? 1 : 0,
-              FourthInstallment = (c.Fee - c.Reduction) == 0 ? 1 :
-              c.Paid / ((c.Fee - c.Reduction) / 5) >= 4 ? 1 : 0,
-              FifthInstallment = (c.Fee - c.Reduction) == 0 ? 1 :
-              c.Paid / ((c.Fee - c.Reduction) / 5) >= 5 ? 1 : 0,
-          }).ToListAsync();
+                // Get the maximum YearId from DepartmentsYears table
+                var maxYearid = await context.DepartmentsYears.MaxAsync(y => y.Id);
+                var maxtear = await context.DepartmentsYears.Where(c => c.Id == maxYearid).Select(c => c.Year).FirstOrDefaultAsync();
 
-                if (studentData == null)
-                    return NotFound();
+                var category = maxtear;
 
-                return Ok(studentData);
+                if (year == null)
+                {
+                    category = maxtear;
+                }
+                else
+                {
+                    category = year;
+                }
+                // Query to get the student payment data with the necessary relationships
+                var query = context.DepartmentsStudentinfromtions
+                    .Include(c => c.Stage)
+                    .Include(c => c.Student)
+                        .ThenInclude(c => c.Dep)
+                        .ThenInclude(c => c.AccountingAnnualInstallments)
+                    .Where(c => c.Year.Year == category)
+                    .Select(c => new PaymentAccVM
+                    {
+                        id = c.Id,
+                        FullName = c.Student.FullName, // اسم الطالب
+                        DeptName = c.Student.Dep.Name, // القسم
+                        Stage = c.Stage.Stage, // المرحله
+                        Edu = c.Student.Edu, // الفتره
+                        MainStatus = c.Student.MainStatus,// الحاله
+                        Fee = c.Fee, // المبلغ الكلى
+                        Reduction = c.Reduction, // التخفيض
+                        Paid = c.Paid, // المدفوع
+                        State = c.State, //الحاله حسب المرحله
+                        rest = (c.Fee - c.Reduction - c.Paid), // المتبقى
+                        accept = c.Year.Year, // سنه القبول
+                        FeePrentage = c.FeePrentage, // نسبه الدفع
+                        Installment = c.Fee - c.Reduction, // الاقساط 
+                        FirstInstallment = (c.Fee - c.Reduction) == 0 ? 1 : c.Paid / ((c.Fee - c.Reduction) / 5) >= 1 ? 1 : 0, // القسط الاول
+                        SecondInstallment = (c.Fee - c.Reduction) == 0 ? 1 : c.Paid / ((c.Fee - c.Reduction) / 5) >= 2 ? 1 : 0, // القسط الثانى
+                        ThirdInstallment = (c.Fee - c.Reduction) == 0 ? 1 : c.Paid / ((c.Fee - c.Reduction) / 5) >= 3 ? 1 : 0, // القسط الثالث
+                        FourthInstallment = (c.Fee - c.Reduction) == 0 ? 1 : c.Paid / ((c.Fee - c.Reduction) / 5) >= 4 ? 1 : 0, // القسط الرابع
+                        FifthInstallment = (c.Fee - c.Reduction) == 0 ? 1 : c.Paid / ((c.Fee - c.Reduction) / 5) >= 5 ? 1 : 0, // القسط الخامس
+                    })
+                    .OrderByDescending(o => o.id); // Sorting by Id in descending order (can adjust to any field)
+                if (!string.IsNullOrEmpty(stage))
+                {
+                    query = (IOrderedQueryable<PaymentAccVM>)query.Where(c => c.Stage == stage);
+                }
+                // Calculate the total number of records for pagination
+                var totalCount = await query.CountAsync();
+
+                // Calculate total pages
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure the page number is within a valid range
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Retrieve the data for the current page
+                var studentPaymentData = await query
+                    .Skip((page.Value - 1) * pageSize) // Skip to the correct page
+                    .Take(pageSize) // Take only the page size number of records
+                    .ToListAsync();
+
+                // Return the result with pagination metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    StudentPaymentData = studentPaymentData
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
-
-
         }
 
+
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار جميع الوصلات
+        /// </summary>
         [HttpGet("StudentReceipts")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> GetStudentReceiptsData()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetStudentReceiptsData(int? page, string? year,string? stage)
         {
             try
-
             {
-                var maxYearId = await context.DepartmentsYears.MaxAsync(y => y.Id);
+                var pageSize = 20; // Number of items per page
 
-                var studentsData = await context.DepartmentsStudentinfromtions
-                       .Include(dsf => dsf.Year)
-                       .Include(dsf => dsf.Stage)
-                       .Include(dsf => dsf.Student).ThenInclude(s => s.Dep)
-                                 .Where(c => c.YearId == maxYearId)
-                       .SelectMany(sd => sd.AccountingStudentPayments.Select(ac => new ReceiptsToReturnVM
-                       {
-                           RecId = ac.Id,
-                           DSFID = sd.Id,
-                           Id = sd.StudentId,
-                           StudentName = sd.Student.FullName,
-                           Stage = sd.Stage.Stage,
-                           Department = sd.Student.Dep.Name,
-                           VoucherNumber = ac.VoucherNumber,
-                           PaidDate = ac.Date,
-                           UniversitTuition = ac.Payment,
-                           Identity = ac.Identity,
-                           Protest = ac.Protest,
-                           SupportBook = ac.Support,
-                           Other = ac.Other,
-                           Insurances = ac.Insurances,
-                           accept = sd.Year.Year,
-                           Penalty = ac.Penalty,
-                           Training = ac.Training,
-                           GraduationDoc = ac.GraduationDoc,
-                           Clearance = ac.NonCurrentActivity,
-                           penality = ac.Penalty
-                       }))
-                       .OrderByDescending(o => o.RecId)
-                       .ToListAsync();
+                // Get the maximum YearId from DepartmentsYears table
+                var maxYearid = await context.DepartmentsYears.MaxAsync(y => y.Id);
+                var maxtear = await context.DepartmentsYears.Where(c => c.Id == maxYearid).Select(c => c.Year).FirstOrDefaultAsync();
 
-                if (studentsData == null)
-                    return NotFound();
+                var category = maxtear;
 
-                return Ok(studentsData);
+                if (year == null)
+                {
+                    category = maxtear;
+                }
+                else
+                {
+                    category = year;
+                }
+                // Query to get the student receipts data with the necessary relationships
+                var query = context.DepartmentsStudentinfromtions
+                    .Include(dsf => dsf.Year)
+                    .Include(dsf => dsf.Stage)
+                    .Include(dsf => dsf.Student)
+                        .ThenInclude(s => s.Dep)
+                    .Where(c => c.Year.Year == category)
+                    .SelectMany(sd => sd.AccountingStudentPayments.Select(ac => new ReceiptsToReturnVM
+                    {
+                        RecId = ac.Id,
+                        DSFID = sd.Id,
+                        Id = sd.StudentId,
+                        StudentName = sd.Student.FullName, // اسم الطالب
+                        Stage = sd.Stage.Stage, // المرحله
+                        Department = sd.Student.Dep.Name, // القسم 
+                        VoucherNumber = ac.VoucherNumber, // رقم الوصل 
+                        PaidDate = ac.Date, // تاريخ الدفع
+                        UniversitTuition = ac.Payment, // فسط
+                        Identity = ac.Identity, // هويه
+                        Protest = ac.Protest,
+                        SupportBook = ac.Support,
+                        Other = ac.Other,
+                        Insurances = ac.Insurances,
+                        accept = sd.Year.Year,
+                        Penalty = ac.Penalty,
+                        Training = ac.Training,
+                        GraduationDoc = ac.GraduationDoc,
+                        Clearance = ac.NonCurrentActivity,
+                        penality = ac.Penalty
+                    }))
+                    .OrderByDescending(o => o.RecId); // Sorting by RecId in descending order
+                if (!string.IsNullOrEmpty(stage))
+                {
+                    query = (IOrderedQueryable<ReceiptsToReturnVM>)query.Where(c => c.Stage == stage);
+                }
+                // Calculate the total number of records for pagination
+                var totalCount = await query.CountAsync();
+
+                // Calculate total pages
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure the page number is within a valid range
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Retrieve the data for the current page
+                var studentReceipts = await query
+                    .Skip((page.Value - 1) * pageSize) // Skip to the correct page
+                    .Take(pageSize) // Take only the page size number of records
+                    .ToListAsync();
+
+                // Return the result with pagination metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    StudentReceipts = studentReceipts
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
-
-
         }
+
 
     }
 }

@@ -12,10 +12,12 @@ namespace Assessment.Controllers
     {
         HosinOldTestingContext context = new HosinOldTestingContext();
 
-
+        /// <summary>
+        /// تستخدم هذه الداله فى الحصول على معلومات الاقسام طبقا للمراحل
+        /// </summary>
         [HttpGet("staticbystage")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> GetstaticbystageAsync()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetstaticbystageAsync(string? year)
         {
              async Task<long> total(int id, int stage, string year)
             {
@@ -132,7 +134,7 @@ namespace Assessment.Controllers
                 ViewBag.Years = await context.DepartmentsYears.Select(x => x.Year).ToListAsync();
                 var maxYearid = await context.DepartmentsYears.MaxAsync(y => y.Id);
                 var maxtear = await context.DepartmentsYears.Where(c => c.Id == maxYearid).Select(c => c.Year).FirstOrDefaultAsync();
-                var category = maxtear;
+                var category = year;
                 if (category == null)
                 {
                     //category = maxtear;
@@ -142,10 +144,6 @@ namespace Assessment.Controllers
 
                     }
                     category = globalvar.category;
-                }
-                else
-                {
-                    globalvar.category = category;
                 }
                 ViewBag.year = category;
                 int friststageid = await context.DepartmentsStages.Where(c => c.Stage == "الاولى").Select(c => c.Id).FirstOrDefaultAsync();

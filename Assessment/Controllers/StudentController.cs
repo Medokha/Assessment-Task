@@ -10,9 +10,11 @@ namespace Assessment.Controllers
     public class StudentController : Controller
     {
         HosinOldTestingContext _context = new HosinOldTestingContext();
-
+        /// <summary>
+        /// تستخدم هذه الداله فى الحصول على معلومات الطالب الشخصيه
+        /// </summary>
         [HttpGet("{id}")]
-        [Authorize(Roles = "std")]
+        //[Authorize(Roles = "std")]
         public async Task<IActionResult> GetStudentInformationAsync(int id)
         {
             try
@@ -24,23 +26,23 @@ namespace Assessment.Controllers
                     .Where(c => c.Id == id)
                     .Select(c => new studentinformation
                     {
-                        Image = c.PersonalPhoto,
-                        name = c.FullName,
-                        states = c.MainStatus,
-                        mother = c.MotherName,
-                        nationality = c.Nationality.Name,
-                        sex = c.Sex,
-                        religion = c.Religion.Name,
-                        nat = c.nationalism,
-                        city = c.Gev,
+                        Image = c.PersonalPhoto, // صوره شخصيه 
+                        name = c.FullName, // الاسم كامل
+                        states = c.MainStatus, // حاله الطالب
+                        mother = c.MotherName, // اسم الام
+                        nationality = c.Nationality.Name, // الجنسيه
+                        sex = c.Sex, // النوع
+                        religion = c.Religion.Name, // الديانه
+                        nat = c.nationalism,  // الهويه الوطنيه
+                        city = c.Gev, // المحافظه
                         citykda = c.MdName,
-                        cityone = c.Area,
-                        citytwo = c.Store,
-                        citythree = c.Zqaq,
-                        cityfour = c.Dar,
-                        phone = c.SuperiorPhoneNumber,
-                        cityborn = c.PlaceOfBrith,
-                        date = c.BrithDate,
+                        cityone = c.Area,  //
+                        citytwo = c.Store, //
+                        citythree = c.Zqaq, // الزقاق
+                        cityfour = c.Dar, // الدار
+                        phone = c.SuperiorPhoneNumber, // رقم الهاتف
+                        cityborn = c.PlaceOfBrith, // محل الولاده
+                        date = c.BrithDate, // تاريخ الميلاد
 
                     }).FirstOrDefaultAsync();
                 if (emp == null)
@@ -52,9 +54,13 @@ namespace Assessment.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        /// <summary>
+        /// تستخدم هذه الداله فى الحصول على مواد الطالب خلال جميع المراحل و يمكن اختيار مرحله واحده
+        /// </summary>
         [HttpGet("material/{id}")]
-        [Authorize(Roles = "std")]
-        public async Task<IActionResult> GetStudentMaterialAsync(int id)
+        //[Authorize(Roles = "std")]
+        public async Task<IActionResult> GetStudentMaterialAsync(int id,string? stage)
         {
             try
             {
@@ -74,17 +80,20 @@ namespace Assessment.Controllers
                 .SelectMany(s => s.DepartmentsStudentmaterials
                 .Select(m => new Stumatrial
                 {
-                    DocName = c.userpermations.Name,
-                    SubName = m.Material.Name,
-                    Dep = c.Dep.Name,
-                    Quest = m.Quest ?? 0,
-                    Total = m.Total.HasValue ? (int)m.Total.Value : 0,
-                    StageName = s.Stage.Stage,
-                    Grade = CalculateGrade(m.Total.HasValue ? (int)m.Total.Value : 0),
-                    FileName = m.Material.DepartmentsMaterialfiles.FirstOrDefault().File
+                    DocName = c.userpermations.Name, // اسم استاذ الماده
+                    SubName = m.Material.Name, // اسم الماده 
+                    Dep = c.Dep.Name, // القسم 
+                    Quest = m.Quest ?? 0, // درجه السعى 
+                    Total = m.Total.HasValue ? (int)m.Total.Value : 0, // الدرجه الكليه
+                    StageName = s.Stage.Stage, // المرحله
+                    Grade = CalculateGrade(m.Total.HasValue ? (int)m.Total.Value : 0), // التقدير
+                    FileName = m.Material.DepartmentsMaterialfiles.FirstOrDefault().File // كتاب الماده
                 }))).ToListAsync();
-
-                if (query == null)
+                if (!string.IsNullOrEmpty(stage))
+                {
+                    query = query.Where(c => c.StageName == stage).ToList();
+                }
+                if (query == null || !query.Any())
                     return NotFound();
                 return Ok(query);
             }

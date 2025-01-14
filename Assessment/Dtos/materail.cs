@@ -7,6 +7,7 @@
         public string department { get; set; }
 
         public string stage { get; set; }
+        public string? year { get; set; }
 
     }
 }

@@ -3,6 +3,7 @@ using Assessment.ViewModels.Edu;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Assessment.Controllers
 {
@@ -12,14 +13,19 @@ namespace Assessment.Controllers
     {
         HosinOldTestingContext _context = new HosinOldTestingContext();
 
-        [HttpGet]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> GetAllStudentInformationAsync()
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار جميع الطلاب
+        /// </summary>
+        [HttpGet("Student")]
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllStudentInformationAsync(int? page)
         {
             try
             {
-                var emp = await _context.UseresUsers
+                var pageSize = 20; // Number of items per page
+
+                // Get the students with related data and select the required fields
+                var studentsQuery = _context.UseresUsers
                     .Include(c => c.Dep)
                     .Include(c => c.Religion)
                     .Include(c => c.Nationality)
@@ -42,21 +48,44 @@ namespace Assessment.Controllers
                         phone = c.SuperiorPhoneNumber,
                         cityborn = c.PlaceOfBrith,
                         date = c.BrithDate,
+                    });
 
-                    }).ToListAsync();
-                if (emp == null)
-                    return NotFound();
-                return Ok(emp);
+                // Calculate the total number of students and the total number of pages
+                var totalCount = await studentsQuery.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure page is valid
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Skip to the correct page and take the required number of items
+                var studentsOnPage = await studentsQuery
+                    .Skip((page.Value - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Prepare the metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    Students = studentsOnPage
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار معلومات الطالب
+        /// </summary>
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin")]
-
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> GetStudentInformationAsync(int id)
         {
             try
@@ -97,62 +126,94 @@ namespace Assessment.Controllers
             }
         }
 
-
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار جميع الطلاب الانتظار
+        /// </summary>
         [HttpGet("Waiting")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> GetAllStudentWaitingAsync()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllStudentWaitingAsync(int? page)
         {
             try
             {
-                var studentData = await _context.UseresWaiting
-                   .Include(u => u.Dep) // الانضمام للقسم
-                   .Include(u => u.createdby) // الانضمام إلى المستخدم المنشئ
-                   .Where(u => u.IsStaff == false &&
-                               u.StudentStatus != "تم التسجيل" &&
-                               u.Dep != null) // التحقق من القيم غير null
-                   .Select(u => new StudentTableVM
-                   {
-                       way = u.Way.Name ?? " ", // تحديد قيمة افتراضية
-                       window = u.Window.Name ?? " ", // تحديد قيمة افتراضية
-                       work = u.createdby.IsWork,
-                       role = u.createdby.Role ?? " ", // تحديد قيمة افتراضية
-                       Id = u.Id,
-                       Name = u.FullName ?? " ", // تحديد قيمة افتراضية
-                       Phone_Number = u.PhoneNumber ?? " ", // تحديد قيمة افتراضية
-                       Gev = u.Gev ?? " ", // تحديد قيمة افتراضية
-                       Adress = u.Area ?? " ", // تحديد قيمة افتراضية
-                       SchooName = u.SchooName ?? " ", // تحديد قيمة افتراضية
-                       status = u.StudentStatus ?? " ", // تحديد قيمة افتراضية
-                       moadel = u.UniversyAvg ?? 0, // تحديد قيمة افتراضية (0 في حالة المعدل)
-                       eduu = u.Edu ?? " ", // تحديد قيمة افتراضية
-                       deppp = u.Dep.Name ?? " ", // تحديد قيمة افتراضية
-                       username = u.MinistryUsername ?? " ", // تحديد قيمة افتراضية
-                       mandname = u.createdby.Username ?? " ", // تحديد قيمة افتراضية
-                       pasname = u.MinistrySecretCode ?? " ", // تحديد قيمة افتراضية
-                   })
-                   .ToListAsync();
-                if (studentData == null)
-                    return NotFound();
-                return Ok(studentData);
+                var pageSize = 20; // Number of items per page
+
+                // Query to get the student data with necessary filters and joins
+                var studentQuery = _context.UseresWaiting
+                    .Include(u => u.Dep) // Join with department
+                    .Include(u => u.createdby) // Join with createdby user
+                    .Where(u => u.IsStaff == false &&
+                                u.StudentStatus != "تم التسجيل" &&
+                                u.Dep != null) // Check for non-null department and student status
+                    .Select(u => new StudentTableVM
+                    {
+                        way = u.Way.Name ?? " ", // Default value if null
+                        window = u.Window.Name ?? " ", // Default value if null
+                        work = u.createdby.IsWork,
+                        role = u.createdby.Role ?? " ", // Default value if null
+                        Id = u.Id,
+                        Name = u.FullName ?? " ", // Default value if null
+                        Phone_Number = u.PhoneNumber ?? " ", // Default value if null
+                        Gev = u.Gev ?? " ", // Default value if null
+                        Adress = u.Area ?? " ", // Default value if null
+                        SchooName = u.SchooName ?? " ", // Default value if null
+                        status = u.StudentStatus ?? " ", // Default value if null
+                        moadel = u.UniversyAvg ?? 0, // Default value (0 if null)
+                        eduu = u.Edu ?? " ", // Default value if null
+                        deppp = u.Dep.Name ?? " ", // Default value if null
+                        username = u.MinistryUsername ?? " ", // Default value if null
+                        mandname = u.createdby.Username ?? " ", // Default value if null
+                        pasname = u.MinistrySecretCode ?? " ", // Default value if null
+                    });
+
+                // Calculate the total number of students
+                var totalCount = await studentQuery.CountAsync();
+
+                // Calculate total pages based on pageSize
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure the page number is within a valid range
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Retrieve the students for the current page
+                var studentsOnPage = await studentQuery
+                    .Skip((page.Value - 1) * pageSize) // Skip to the correct page
+                    .Take(pageSize) // Take only the page size amount
+                    .ToListAsync();
+
+                // Return the result with pagination metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    Students = studentsOnPage
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
 
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار جميع الموظفين
+        /// </summary>
         [HttpGet("Users")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> GetAllUserInformationAsync()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllUserInformationAsync(int? page)
         {
             try
             {
-                var emp = await _context.userpermations
-                    .Include(c => c.Dep)
-                    .Include(c => c.Nationality)
+                var pageSize = 20; // Number of items per page
+
+                // Query to get the user data with necessary joins and filters
+                var userQuery = _context.userpermations
+                    .Include(c => c.Dep) // Join with department
+                    .Include(c => c.Nationality) // Join with nationality
                     .Select(c => new doctorinformation
                     {
                         name = c.Username,
@@ -162,21 +223,48 @@ namespace Assessment.Controllers
                         states = c.IsActive,
                         role = c.Role,
                         fullname = c.Name
-                    }).ToListAsync();
-                if (emp == null)
-                    return NotFound();
-                return Ok(emp);
+                    });
+
+                // Calculate the total number of users
+                var totalCount = await userQuery.CountAsync();
+
+                // Calculate total pages based on pageSize
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure the page number is within a valid range
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Retrieve the users for the current page
+                var usersOnPage = await userQuery
+                    .Skip((page.Value - 1) * pageSize) // Skip to the correct page
+                    .Take(pageSize) // Take only the page size amount
+                    .ToListAsync();
+
+                // Return the result with pagination metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    Users = usersOnPage
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
 
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار احصائيات جميع الطلاب
+        /// </summary>
         [HttpGet("Statistic")]
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
 
-        public async Task<IActionResult> StatisticloginAsync()
+        public async Task<IActionResult> StatisticloginAsync(string? year)
         {
             try
             {
@@ -186,6 +274,14 @@ namespace Assessment.Controllers
 
 
                 var category = maxtear;
+                if (year == null)
+                {
+                    category = maxtear;
+                }
+                else
+                {
+                    category = year;
+                }
 
                 var query = _context.DepartmentsStudentinfromtions
                 .Include(c => c.Stage)
@@ -341,49 +437,86 @@ namespace Assessment.Controllers
             }
         }
 
-
+        /// <summary>
+        /// تستخدم هذه الداله فى اظهار حاله جميع الطلاب
+        /// </summary>
         [HttpGet("StudentStates")]
-        [Authorize(Roles = "admin")]
-
-        public async Task<IActionResult> AllStudentStatesAsync()
+        //[Authorize(Roles = "admin")]
+        public async Task<IActionResult> AllStudentStatesAsync(int? page, string? year)
         {
             try
             {
+                var pageSize = 20; // Number of items per page
 
+                // Retrieve the latest year from the DepartmentsYears table
                 var maxYearid = await _context.DepartmentsYears.MaxAsync(y => y.Id);
                 var maxtear = await _context.DepartmentsYears.Where(c => c.Id == maxYearid).Select(c => c.Year).FirstOrDefaultAsync();
 
-
                 var category = maxtear;
 
-                var query = _context.DepartmentsStudentinfromtions
-                .Include(c => c.Stage)
-                .Include(c => c.Student)
-                .ThenInclude(c => c.Dep)
-                .Select(c => new StudentStatesVM
+                if (year == null)
                 {
-                    id = c.Id,
-                    FullName = c.Student.FullName,
-                    Stage = c.Stage.Stage,
-                    Fee = c.Fee,
-                    Edu = c.Student.Edu,
-                    State = c.State,
-                    FeePrentage = c.FeePrentage,
-                    DeptName = c.Student.Dep.Name,
-                    accept = c.Student.StartYear.Year,
-                    Role = c.Student.createdby.Role,
-                    IsStaff = c.Student.IsStaff
-                }).Distinct();
-                var querydata = query.ToList();
+                    category = maxtear;
+                }
+                else
+                {
+                    category = year;
+                }
 
+                // Query to get the student states along with necessary related data
+                var query = _context.DepartmentsStudentinfromtions
+                    .Include(c => c.Stage)
+                    .Include(c => c.Year)
+                    .Include(c => c.Student)
+                    .ThenInclude(c => c.Dep)
+                    .Where(c => c.Year.Year == category) // Filter by the latest year
+                    .Select(c => new StudentStatesVM
+                    {
+                        id = c.Id,
+                        FullName = c.Student.FullName,
+                        Stage = c.Stage.Stage,
+                        Fee = c.Fee,
+                        Edu = c.Student.Edu,
+                        State = c.State,
+                        FeePrentage = c.FeePrentage,
+                        DeptName = c.Student.Dep.Name,
+                        accept = c.Student.StartYear.Year,
+                        Role = c.Student.createdby.Role,
+                        IsStaff = c.Student.IsStaff
+                    })
+                    .Distinct(); // Ensure unique records
                 if (query == null)
                     return NotFound();
-                return Ok(query);
+                // Calculate the total number of records for pagination
+                var totalCount = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // Ensure the page number is valid
+                page = Math.Max(page ?? 1, 1); // Default to 1 if null or less than 1
+                page = Math.Min(page ?? 1, totalPages); // Ensure page does not exceed total pages
+
+                // Skip and take based on the current page
+                var queryData = await query
+                    .Skip((page.Value - 1) * pageSize) // Skip to the correct page
+                    .Take(pageSize) // Take only the number of items per page
+                    .ToListAsync();
+
+                // Return the result with pagination metadata
+                var result = new
+                {
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    StudentStates = queryData
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
         }
+
     }
 }
