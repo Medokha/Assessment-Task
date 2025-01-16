@@ -16,7 +16,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى الحصول على معلومات الاقسام طبقا للمراحل
         /// </summary>
         [HttpGet("staticbystage")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetstaticbystageAsync(string? year)
         {
              async Task<long> total(int id, int stage, string year)

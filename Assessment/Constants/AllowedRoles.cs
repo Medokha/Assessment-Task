@@ -2,7 +2,7 @@
 {
     public enum AllowedRoles
     {
-        admin,
+        head,
         edu,
         std
 

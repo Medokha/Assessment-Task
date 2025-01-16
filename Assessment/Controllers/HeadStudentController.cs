@@ -17,7 +17,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار جميع الطلاب
         /// </summary>
         [HttpGet("Student")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetAllStudentInformationAsync(int? page)
         {
             try
@@ -85,7 +85,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار معلومات الطالب
         /// </summary>
         [HttpGet("{id}")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetStudentInformationAsync(int id)
         {
             try
@@ -130,7 +130,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار جميع الطلاب الانتظار
         /// </summary>
         [HttpGet("Waiting")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetAllStudentWaitingAsync(int? page)
         {
             try
@@ -203,7 +203,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار جميع الموظفين
         /// </summary>
         [HttpGet("Users")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetAllUserInformationAsync(int? page)
         {
             try
@@ -262,7 +262,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار احصائيات جميع الطلاب
         /// </summary>
         [HttpGet("Statistic")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
 
         public async Task<IActionResult> StatisticloginAsync(string? year)
         {
@@ -448,7 +448,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار حاله جميع الطلاب
         /// </summary>
         [HttpGet("StudentStates")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> AllStudentStatesAsync(int? page, string? year)
         {
             try

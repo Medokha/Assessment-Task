@@ -18,7 +18,7 @@ namespace Assessment.Controllers
         ///   تستخدم هذه الداله احصائيات الماليه للاقسام
         /// </summary>
         [HttpGet("staticaccount")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> Getstaticaccount(string? year)
         {
              int total(int id, string year)
@@ -394,7 +394,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار الدفعات الماليه لجميع الطلاب
         /// </summary>
         [HttpGet("StudentPayment")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetStudentPaymentPositionData(int? page, string? year, string? stage)
         {
             try
@@ -487,7 +487,7 @@ namespace Assessment.Controllers
         /// تستخدم هذه الداله فى اظهار جميع الوصلات
         /// </summary>
         [HttpGet("StudentReceipts")]
-        //[Authorize(Roles = "admin")]
+        //[Authorize(Roles = "head")]
         public async Task<IActionResult> GetStudentReceiptsData(int? page, string? year,string? stage)
         {
             try
