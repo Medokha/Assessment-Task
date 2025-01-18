@@ -116,5 +116,58 @@ namespace Assessment.Controllers
                 _ => "رسوب"
             };
         }
+
+
+        /// <summary>
+        /// و يمكن اختيار مرحله واحده
+        /// </summary>
+        [HttpGet("materialLast/{id}")]
+        //[Authorize(Roles = "std")]
+        public async Task<IActionResult> GetStudentMaterialLastYearAsync(int id)
+        {
+            try
+            {
+                var stdid = _context.DepartmentsStudentinfromtions.Where(c=>c.StudentId==id).Select(c => c.YearId).ToList();
+                //var maxYearId = await _context.DepartmentsYears.MaxAsync(y => y.Id);
+                var maxYearId =  stdid.Max();
+
+                var query = await _context.UseresUsers
+                .Include(c => c.userpermations)
+                .Include(o => o.Dep)
+                .Include(o => o.DepartmentsMaterials)
+                .ThenInclude(s => s.DepartmentsMaterialfiles)
+                .Include(o => o.DepartmentsStudentinfromtions)
+                .ThenInclude(o => o.DepartmentsStudentmaterials)
+                .Include(o => o.DepartmentsStudentinfromtions)
+                .ThenInclude(o => o.Stage)
+                .Where(c => c.Id == id)
+                .SelectMany(c => c.DepartmentsStudentinfromtions
+                .SelectMany(s => s.DepartmentsStudentmaterials
+                .Select(m => new Stumatrial
+                {
+                    DocName = c.userpermations.Name, // اسم استاذ الماده
+                    SubName = m.Material.Name, // اسم الماده 
+                    Dep = c.Dep.Name, // القسم 
+                    Quest = m.Quest ?? 0, // درجه السعى 
+                    Total = m.Total.HasValue ? (int)m.Total.Value : 0, // الدرجه الكليه
+                    StageName = s.Stage.Stage, // المرحله
+                    Grade = CalculateGrade(m.Total.HasValue ? (int)m.Total.Value : 0), // التقدير
+                    FileName = m.Material.DepartmentsMaterialfiles.FirstOrDefault().File, // كتاب الماده
+                    year =m.Studentinfromtion.YearId,
+                }))).ToListAsync();
+                if (maxYearId != null)
+                {
+                    query = query.Where(c => c.year == maxYearId).ToList();
+                }
+                //if (query == null || !query.Any())
+                //    return NotFound();
+                return Ok(query);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
     }
 }

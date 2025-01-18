@@ -12,5 +12,6 @@
         public string StageName { get; set; } 
         public string Grade { get; set; }
         public string? FileName { get; set; }
+        public int? year { get; set; }
     }
 }
