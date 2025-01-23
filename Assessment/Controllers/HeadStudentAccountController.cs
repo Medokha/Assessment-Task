@@ -23,130 +23,121 @@ namespace Assessment.Controllers
         {
              int total(int id, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج"
-                    && c.Studentinfromtion.Year.Year == year)
-                    .AsEnumerable().DistinctBy(c => c.StudentinfromtionId)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student)
+                    .Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.State == "مستمر"
+                    && c.Year.Year == year)
+                    .AsEnumerable()
                     .ToList();
                 return stdmedical.Count();
             }
              async Task<decimal?> totalmony(int id, int stage, string year)
             {
-                var total = await context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.StageId == stage && c.Studentinfromtion.Year.Year == year)
-                    .Select(c => c.Studentinfromtion.Fee)
+                var total = await context.DepartmentsStudentinfromtions.
+                    Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.StageId == stage && c.State == "مستمر"
+                        && c.Year.Year == year)
+                    .Select(c => c.Fee)
                     .ToListAsync();
                 return total.Sum(p => p.HasValue ? (long)p.Value : 0);
             }
              async Task<decimal?> totalmonyall(int id, string year)
             {
-                var total = await context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year)
-                    .Select(c => c.Studentinfromtion.Fee)
+                var total = await context.DepartmentsStudentinfromtions.Include(c => c.Student)
+                    .Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر")
+                    .Select(c => c.Fee)
                     .ToListAsync();
                 return total.Sum(p => p.HasValue ? (long)p.Value : 0);
             }
              async Task<decimal?> totalmonypay(int id, string year)
             {
-                var total = await context.AccountingStudentPayments
-                   .Include(x => x.Studentinfromtion)
-                   .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var total = await context.DepartmentsStudentinfromtions
+                   .Include(c => c.Student).Include(c => c.Stage)
 
-                   .Where(c => c.Studentinfromtion.Student.DepId == id
-                   && c.Studentinfromtion.Year.Year == year &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Payment != 0)
-                   .Select(c => c.Payment)
+                   .Where(c => c.Student.DepId == id
+                   && c.Year.Year == year &&
+                        c.Stage.Stage != "الخريج" && (c.Paid + c.Reduction) >= c.Fee && c.State == "مستمر")
+                   .Select(c => c.Paid)
                    .ToListAsync();
                 return total.Sum(p => p.HasValue ? (long)p.Value : 0);
             }
              int totalpay(int id, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year && c.Payment != 0)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student)
+                    .Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && (c.Paid + c.Reduction) >= c.Fee && c.State == "مستمر")
                     .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId)
                     .ToList();
                 return stdmedical.Count();
             }
              int totalred(int id, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year && c.Studentinfromtion.Reduction != 0)
-                      .AsEnumerable().DistinctBy(c => c.StudentinfromtionId)
+                    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.Reduction != 0 && c.State == "مستمر")
+                      .AsEnumerable()
                     .ToList();
                 return stdmedical.Count();
             }
              int totalstd(int id, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year).ToList();
+                    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر").ToList();
                 return stdmedical.Count();
             }
              int totalnopay(int id, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                     .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year && c.Studentinfromtion.Paid == 0)
-                    .AsEnumerable().DistinctBy(c => c.StudentinfromtionId)
+                    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && (c.Paid + c.Reduction) < c.Fee && c.State == "مستمر")
+                    .AsEnumerable()
                     .ToList();
                 return stdmedical.Count();
             }
              async Task<decimal?> totalmonypayre(int id, string year)
             {
-                var total = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id
-                    && c.Studentinfromtion.Year.Year == year &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Paid == 0)
+                var total = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id
+                    && c.Year.Year == year &&
+                        c.Stage.Stage != "الخريج" && (c.Paid + c.Reduction) < c.Fee && c.State == "مستمر")
                      .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId)
-                    .Select(c => c.Studentinfromtion.Fee)
+                    .Select(c => c.Fee)
                     .ToList();
                 return total.Sum(p => p.HasValue ? (long)p.Value : 0);
             }
              async Task<decimal?> totalmonyred(int id, string year)
             {
-                var total = context.AccountingStudentPayments
-                    .Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var total = context.DepartmentsStudentinfromtions
+                    .Include(c => c.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                               c.Studentinfromtion.Year.Year == year &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" &&
-                               c.Studentinfromtion.Reduction != 0)
+                    .Where(c => c.Student.DepId == id &&
+                               c.Year.Year == year &&
+                        c.Stage.Stage != "الخريج" &&
+                               c.Reduction != 0 && c.State == "مستمر")
                     .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId)
-                    .Select(c => c.Studentinfromtion.Reduction)
+                    .Select(c => c.Reduction)
                     .ToList();
                 return total.Sum(p => p.HasValue ? (long)p.Value : 0);
             }
+
+
              int totalcomplete(int id, int precentage, string year)
             {
-                var stdmedicalcomplete = context.AccountingStudentPayments
-                    .Include(x => x.Studentinfromtion)
-                    .ThenInclude(x => x.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedicalcomplete = context.DepartmentsStudentinfromtions.Include(x => x.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.FeePrentage == precentage && c.Studentinfromtion.Year.Year == year).ToList();
+                    .Where(c => c.Student.DepId == id &&
+                        c.Stage.Stage != "الخريج" && c.FeePrentage == precentage && c.Year.Year == year && c.State == "مستمر").ToList();
                 return stdmedicalcomplete.Count();
             }
-
 
             try
             {
@@ -218,39 +209,34 @@ namespace Assessment.Controllers
 
 
 
-                    var totall = context.AccountingStudentPayments
-                        .Include(x => x.Studentinfromtion).ThenInclude(c => c.Student)
-                        .Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-                        .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                        .Where(c => c.Studentinfromtion.Fee != 0 && deptsid.Contains((int)c.Studentinfromtion.Student.DepId) &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج")
+                    var totall = context.DepartmentsStudentinfromtions
+                        .Include(c => c.Student)
+                        .Include(c => c.Stage)
+                        .Where(c => c.Year.Year == categoryyear)
+                        .Where(c => c.Fee != 0 && deptsid.Contains((int)c.Student.DepId) &&
+                        c.Stage.Stage != "الخريج" && c.State == "مستمر")
                         .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId)
-                        .Select(c => c.Studentinfromtion.Fee)
+                        .Select(c => c.Fee)
                         .ToList();
                     ViewBag.one = totall.Sum(p => p.HasValue ? (long)p.Value : 0);
                     ViewBag.onenum = totall.Count();
 
-                    var totalre = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                        .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                                            .Where(c => c.Studentinfromtion.Reduction != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Studentinfromtion.Student.DepId))
+                    var totalre = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Year.Year == categoryyear)
+                                            .Where(c => c.Reduction != 0 &&
+                        c.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Student.DepId) && c.State == "مستمر")
                                             .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId)
-                        .Select(c => c.Studentinfromtion.Reduction)
+                        .Select(c => c.Reduction)
                         .ToList();
                     ViewBag.onere = totalre.Sum(p => p.HasValue ? (long)p.Value : 0);
                     ViewBag.onenumre = totalre.Count();
 
-                    var totalpaid = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                        .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                         .Where(c => c.Studentinfromtion.Paid != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Studentinfromtion.Student.DepId))
+                    var totalpaid = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Year.Year == categoryyear)
+                         .Where(c => c.Paid != 0 &&
+                        c.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Student.DepId) && c.State == "مستمر")
                         .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId)
-                         .Select(c => c.Studentinfromtion.Paid)
+                         .Select(c => c.Paid)
                         .ToList();
                     ViewBag.onepaid = totalpaid.Sum(p => p.HasValue ? (long)p.Value : 0);
                     ViewBag.onenumpaid = totalpaid.Count();
@@ -314,37 +300,32 @@ namespace Assessment.Controllers
                         statisticspre1000.Add(c);
                     }
 
-                    var totalll = context.AccountingStudentPayments
-                        .Include(x => x.Studentinfromtion).ThenInclude(c => c.Student)
-                                            .Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                        .Where(c => c.Studentinfromtion.Fee != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Studentinfromtion.Student.DepId))
+                    var totalll = context.DepartmentsStudentinfromtions
+                        .Include(c => c.Student)
+                                            .Include(c => c.Stage)
+    .Where(c => c.Year.Year == categoryyear)
+                        .Where(c => c.Fee != 0 &&
+                        c.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Student.DepId) && c.State == "مستمر")
                         .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId)
-                        .Select(c => c.Studentinfromtion.Fee)
+                        .Select(c => c.Fee)
                         .ToList();
                     ViewBag.one = totalll.Sum(p => p.HasValue ? (long)p.Value : 0);
                     ViewBag.onenum = totalll.Count();
 
-                    var totalre = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                        .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                         .Where(c => c.Studentinfromtion.Reduction != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Studentinfromtion.Student.DepId))
-                        .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId).Select(c => c.Studentinfromtion.Reduction)
+                    var totalre = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Year.Year == categoryyear)
+                         .Where(c => c.Reduction != 0 &&
+                        c.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Student.DepId) && c.State == "مستمر")
+                        .AsEnumerable().Select(c => c.Reduction)
                         .ToList();
                     ViewBag.onere = totalre.Sum(p => p.HasValue ? (long)p.Value : 0);
                     ViewBag.onenumre = totalre.Count();
 
-                    var totalpaid = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                        .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Year.Year == categoryyear)
-                         .Where(c => c.Studentinfromtion.Paid != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Studentinfromtion.Student.DepId))
-                        .AsEnumerable()
-                        .DistinctBy(c => c.StudentinfromtionId).Select(c => c.Studentinfromtion.Paid)
+                    var totalpaid = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Year.Year == categoryyear)
+                         .Where(c => c.Paid != 0 &&
+                        c.Stage.Stage != "الخريج" && deptsid.Contains((int)c.Student.DepId) && c.State == "مستمر")
+                        .AsEnumerable().Select(c => c.Paid)
                         .ToList();
                     ViewBag.onepaid = totalpaid.Sum(p => (long)p.GetValueOrDefault());
 

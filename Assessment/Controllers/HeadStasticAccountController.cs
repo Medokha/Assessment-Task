@@ -21,75 +21,73 @@ namespace Assessment.Controllers
         {
              async Task<long> total(int id, int stage, string year)
             {
-                var stdmedical = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                     .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id
-                     && c.Studentinfromtion.StageId == stage &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year)
+                var stdmedical = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id
+                     && c.StageId == stage &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر")
                       .AsEnumerable()
-                     .DistinctBy(c => c.StudentinfromtionId)
                      .ToList();
                 return stdmedical.Count();
             }
              async Task<decimal?> totalmony(int id, int stage, string year)
             {
-                var total = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id &&
-                    c.Studentinfromtion.StageId == stage &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year)
-                    .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId).Select(c => c.Studentinfromtion.Fee)
+                var total = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id &&
+                    c.StageId == stage &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر")
+                    .AsEnumerable().Select(c => c.Fee)
                     .ToList();
                 return total.Sum(p => (long)p.GetValueOrDefault());
             }
              async Task<decimal?> totalmonypaid(int id, int stage, string year)
             {
-                var total = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                   .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id
-                   && c.Studentinfromtion.StageId == stage &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year)
-                    .AsEnumerable()
-                   .DistinctBy(c => c.StudentinfromtionId).Select(c => c.Studentinfromtion.Paid)
+                var total = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id
+                   && c.StageId == stage &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر")
+                    .AsEnumerable().Select(c => c.Paid)
                     .ToList();
                 return total.Sum(p => (long)p.GetValueOrDefault());
             }
              async Task<decimal?> totalmonyred(int id, int stage, string year)
             {
-                var total = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(c => c.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
-    .Where(c => c.Studentinfromtion.Student.DepId == id
-                    && c.Studentinfromtion.StageId == stage && c.Studentinfromtion.Year.Year == year &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج")
-                     .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId).Select(c => c.Studentinfromtion.Reduction)
+                var total = context.DepartmentsStudentinfromtions.Include(c => c.Student).Include(c => c.Stage)
+    .Where(c => c.Student.DepId == id
+                    && c.StageId == stage && c.Year.Year == year &&
+                        c.Stage.Stage != "الخريج" && c.State == "مستمر")
+                     .AsEnumerable().Select(c => c.Reduction)
                     .ToList();
                 return total.Sum(p => (long)p.GetValueOrDefault());
             }
              async Task<long> totalcomplete(int id, int precentage, int stage, string year)
             {
-                var stdmedicalcomplete = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(x => x.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedicalcomplete = context.DepartmentsStudentinfromtions.Include(x => x.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id && c.Studentinfromtion.FeePrentage == precentage
-                    && c.Studentinfromtion.StageId == stage &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.Year.Year == year)
+                    .Where(c => c.Student.DepId == id && c.FeePrentage == precentage
+                    && c.StageId == stage &&
+                        c.Stage.Stage != "الخريج" && c.Year.Year == year && c.State == "مستمر")
                     .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId)
+                    .ToList();
+                return stdmedicalcomplete.Count();
+            }
+             async Task<long> totalcompletee(int id, int stage, string year)
+            {
+                var stdmedicalcomplete = context.DepartmentsStudentinfromtions.Include(x => x.Student)
+                    .Where(c => c.Student.DepId == id && (c.Paid + c.Reduction) >= c.Fee && c.State == "مستمر" &&
+                        c.Stage.Stage != "الخريج"
+                    && c.StageId == stage && c.Year.Year == year)
+                    .AsEnumerable()
                     .ToList();
                 return stdmedicalcomplete.Count();
             }
              async Task<long> totalallcomplete(int id, int stage, string year)
             {
-                var stdmedicalcomplete = context.AccountingStudentPayments.Include(x => x.Studentinfromtion)
-                    .ThenInclude(x => x.Student).Include(x => x.Studentinfromtion).ThenInclude(c => c.Stage)
+                var stdmedicalcomplete = context.DepartmentsStudentinfromtions.Include(x => x.Student).Include(c => c.Stage)
 
-                    .Where(c => c.Studentinfromtion.Student.DepId == id
-                    && c.Studentinfromtion.FeePrentage != 0 &&
-                        c.Studentinfromtion.Stage.Stage != "الخريج" && c.Studentinfromtion.StageId == stage && c.Studentinfromtion.Year.Year == year)
+                    .Where(c => c.Student.DepId == id
+                    && c.FeePrentage != 0 &&
+                        c.Stage.Stage != "الخريج" && c.StageId == stage && c.Year.Year == year && c.State == "مستمر")
                     .AsEnumerable()
-                    .DistinctBy(c => c.StudentinfromtionId)
                     .ToList();
                 return stdmedicalcomplete.Count();
             }
@@ -100,18 +98,18 @@ namespace Assessment.Controllers
                 decimal p = await totalmonypaid(dept, stage, year) ?? 0;
                 stagedeptVM depstage = new stagedeptVM()
                 {
-                    numberstu = await total(dept, stage, year),// العدد الكلى
-                    numberstupaid = await totalallcomplete(dept, stage, year),// عدد الطلاب المسددين
-                    numberstupaidcomplete = await totalcomplete(dept, 100, stage, year),// عدد الطلاب المسددين كامل
-                    numberstunopaidcomplete = await totalcomplete(dept, 0, stage, year),// عدد الطلاب الغبر مسددين نهائيا
-                    totalmony = await totalmony(dept, stage, year) ?? 0,// المبلغ الكلى
-                    monyreduction = await totalmonyred(dept, stage, year) ?? 0,// مبلغ التخفيض
-                    monypaid = await totalmonypaid(dept, stage, year) ?? 0,// المبلغ المدفوع
-                    monynopaid = t - (d + p) // المبلغ الغير مدفوع - المتبقى 
+                    numberstu = await total(dept, stage, year),
+                    numberstupaid = await totalallcomplete(dept, stage, year),
+                    numberstupaidcomplete = await totalcompletee(dept, stage, year),
+                    numberstunopaidcomplete = await totalcomplete(dept, 0, stage, year),
+                    totalmony = await totalmony(dept, stage, year) ?? 0,
+                    monyreduction = await totalmonyred(dept, stage, year) ?? 0,
+                    monypaid = await totalmonypaid(dept, stage, year) ?? 0,
+                    monynopaid = t - (d + p)
                 };
                 return depstage;
             }
-             stagedeptVM stagedepttotal(stagedeptVM? one = null, stagedeptVM? two = null,
+            stagedeptVM stagedepttotal(stagedeptVM? one = null, stagedeptVM? two = null,
                 stagedeptVM? three = null, stagedeptVM? four = null, stagedeptVM? five = null, stagedeptVM? grd = null)
             {
                 stagedeptVM x = new stagedeptVM()
@@ -204,9 +202,9 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                               await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
-                               await Stagedept(fourtageid, dept, category))
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                            //   await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
+                            //   await Stagedept(fourtageid, dept, category))
                         };
                         s.Add(v);
                     }
@@ -235,9 +233,9 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                               await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
-                               await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category))
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                            //   await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
+                            //   await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category))
                         };
                         s.Add(v);
                     }
@@ -254,9 +252,9 @@ namespace Assessment.Controllers
                             x4 = await Stagedept(fourtageid, dept, category),
                             x5 = await Stagedept(fivestageid, dept, category),
                             x6 = await Stagedept(sixstageid, dept, category),
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                               await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
-                               await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category), await Stagedept(sixstageid, dept, category))
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                            //   await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
+                            //   await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category), await Stagedept(sixstageid, dept, category))
                         };
                         s.Add(v);
                     }
@@ -309,9 +307,9 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                                   await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category)
-                                   )
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                            //       await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category)
+                            //       )
                         };
                         s.Add(v);
                     }
@@ -376,8 +374,8 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                           await Stagedept(secondstageid, dept, category))
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                           //await Stagedept(secondstageid, dept, category))
 
                         };
                         s.Add(v);
@@ -455,7 +453,7 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category))
+                            //x7 = stagedepttotal(await Stagedept(friststageid, dept, category))
                         };
                         s.Add(v);
                     }
@@ -484,9 +482,9 @@ namespace Assessment.Controllers
                                 monyreduction = 0,
                                 monynopaid = 0
                             },
-                            x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
-                           await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
-                           await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category), await Stagedept(gradestageid, dept, category))
+                           // x7 = stagedepttotal(await Stagedept(friststageid, dept, category),
+                           //await Stagedept(secondstageid, dept, category), await Stagedept(thiredstageid, dept, category),
+                           //await Stagedept(fourtageid, dept, category), await Stagedept(fivestageid, dept, category), await Stagedept(gradestageid, dept, category))
                         };
                         s.Add(v);
                     }
@@ -498,7 +496,7 @@ namespace Assessment.Controllers
                     x11 += v.x4.numberstu ?? 0;
                     x11 += v.x5.numberstu ?? 0;
                     x11 += v.x6.numberstu ?? 0;
-                    x11 += v.x7.numberstu ?? 0;
+                    //x11 += v.x7.numberstu ?? 0;
                     //************
                     x12 += v.x1.numberstupaid ?? 0;
                     x12 += v.x2.numberstupaid ?? 0;
@@ -506,7 +504,7 @@ namespace Assessment.Controllers
                     x12 += v.x4.numberstupaid ?? 0;
                     x12 += v.x5.numberstupaid ?? 0;
                     x12 += v.x6.numberstupaid ?? 0;
-                    x12 += v.x7.numberstupaid ?? 0;
+                    //x12 += v.x7.numberstupaid ?? 0;
                     //************
                     x13 += v.x1.numberstupaidcomplete ?? 0;
                     x13 += v.x2.numberstupaidcomplete ?? 0;
@@ -514,7 +512,7 @@ namespace Assessment.Controllers
                     x13 += v.x4.numberstupaidcomplete ?? 0;
                     x13 += v.x5.numberstupaidcomplete ?? 0;
                     x13 += v.x6.numberstupaidcomplete ?? 0;
-                    x13 += v.x7.numberstupaidcomplete ?? 0;
+                    //x13 += v.x7.numberstupaidcomplete ?? 0;
                     //************                   ?0
                     x14 += v.x1.numberstunopaidcomplete ?? 0;
                     x14 += v.x2.numberstunopaidcomplete ?? 0;
@@ -522,7 +520,7 @@ namespace Assessment.Controllers
                     x14 += v.x4.numberstunopaidcomplete ?? 0;
                     x14 += v.x5.numberstunopaidcomplete ?? 0;
                     x14 += v.x6.numberstunopaidcomplete ?? 0;
-                    x14 += v.x7.numberstunopaidcomplete ?? 0;
+                    //x14 += v.x7.numberstunopaidcomplete ?? 0;
                     //************
                     x15 += v.x1.totalmony ?? 0;
                     x15 += v.x2.totalmony ?? 0;
@@ -530,7 +528,7 @@ namespace Assessment.Controllers
                     x15 += v.x4.totalmony ?? 0;
                     x15 += v.x5.totalmony ?? 0;
                     x15 += v.x6.totalmony ?? 0;
-                    x15 += v.x7.totalmony ?? 0;
+                    //x15 += v.x7.totalmony ?? 0;
                     //************
                     x16 += v.x1.monypaid ?? 0;
                     x16 += v.x2.monypaid ?? 0;
@@ -538,7 +536,7 @@ namespace Assessment.Controllers
                     x16 += v.x4.monypaid ?? 0;
                     x16 += v.x5.monypaid ?? 0;
                     x16 += v.x6.monypaid ?? 0;
-                    x16 += v.x7.monypaid ?? 0;
+                    //x16 += v.x7.monypaid ?? 0;
                     //************
                     x17 += v.x1.monyreduction ?? 0;
                     x17 += v.x2.monyreduction ?? 0;
@@ -546,7 +544,7 @@ namespace Assessment.Controllers
                     x17 += v.x4.monyreduction ?? 0;
                     x17 += v.x5.monyreduction ?? 0;
                     x17 += v.x6.monyreduction ?? 0;
-                    x17 += v.x7.monyreduction ?? 0;
+                    //x17 += v.x7.monyreduction ?? 0;
                     //************
                     x18 += v.x1.monynopaid ?? 0;
                     x18 += v.x2.monynopaid ?? 0;
@@ -554,7 +552,7 @@ namespace Assessment.Controllers
                     x18 += v.x4.monynopaid ?? 0;
                     x18 += v.x5.monynopaid ?? 0;
                     x18 += v.x6.monynopaid ?? 0;
-                    x18 += v.x7.monynopaid ?? 0;
+                    //x18 += v.x7.monynopaid ?? 0;
 
                 }
 
